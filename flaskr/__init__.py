@@ -12,12 +12,19 @@ oauth = OAuth()
 # the JWT token obtained.
 # two options:
 #   1) use auto-config and define claim_options when getting the JWT toke to override the issuer claim option
+#      The registration is then as easy as:
+#         webex = oauth.register('webex',
+#                                server_metadata_url='https://webexapis.com/v1/.well-known/openid-configuration',
+#                                client_kwargs={'scope': 'openid email profile phone address',
+#                                               'code_challenge_method': 'S256',
+#                                               })
+#       .. but the claim_options have to be overridden b/c Wx returns an incompatible iss claim
 #       token = webex.authorize_access_token(response_type='id_token',
 #                                            claims_options={'iss': {'values': ['https://idbroker-b-us.webex.com/idb']}}
 #                                            )
 #
 #   2) manually configure the client. Then an access token can be obtained w/o claim_options when getting the access
-#   token. This minimizes the risk of the static reference to an issue host name.
+#   token. This minimizes the risk of the static reference to an issue host name. OTOH the iss claim is not validated.
 #         webex = oauth.register('webex',
 #                                access_token_url='https://webexapis.com/v1/access_token',
 #                                authorize_url='https://webexapis.com/v1/authorize',
@@ -41,9 +48,6 @@ oauth.init_app(app)
 @app.route('/login')
 def login():
     redirect_uri = url_for('authorize', _external=True)
-    # code_verifier, code_challenge = generate_pkce_pair()
-    # return webex.authorize_redirect(redirect_uri, response_type='code', code_challenge=code_challenge,
-    #                                 code_verifier=code_verifier)
     return webex.authorize_redirect(redirect_uri, response_type='code')
 
 
